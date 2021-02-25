@@ -9,23 +9,28 @@ async function validatePlayer(serverId, username, uuid) {
       serverId,
     }
   })
-  if (!mc.data || !(mc.data.id === uuid && mc.data.name === username)) {
-    console.log('Auth failed')
+  if (!mc.data) {
+    console.debug(`Auth failed (anonymous)`)
+    return false
+  }
+  if (!(mc.data.id === uuid && mc.data.name === username)) {
+    console.log(`Auth failed (uuid:${uuid}, username:${username})`)
     return false
   }
 
   const allowlist = await axios.get('https://raw.githubusercontent.com/TeamKun/SankaKidsAllowlist/master/whitelist.json')
   if (!allowlist.data) {
-    console.log('Failed to load whitelist')
+    console.error('Failed to load whitelist')
     return false
   }
 
   const whitelist = Array.from(allowlist.data)
   if (!whitelist.some(e => e.uuid.split('-').join('') === uuid)) {
-    console.log('Not in whitelist')
+    console.warn(`Not in whitelist (uuid:${uuid}, username:${username})`)
     return false
   }
 
+  console.info(`Authenticated (uuid:${uuid}, username:${username})`)
   return true
 }
 
